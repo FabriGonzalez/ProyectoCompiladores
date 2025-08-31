@@ -2,17 +2,48 @@ import exceptions.LexicalException;
 import sourcemanager.SourceManager;
 
 import java.io.IOException;
+import java.util.HashMap;
 
 import static sourcemanager.SourceManager.END_OF_FILE;
 
-public class AnalizadorLexico {
+public class LexicalAnalyzer {
     String lexeme;
     char currentChar;
     SourceManager sourceManager;
 
+    public LexicalAnalyzer(SourceManager sourceManager) throws IOException {
+        this.sourceManager = sourceManager;
+        this.currentChar = sourceManager.getNextChar();
+    }
+
+    private static final HashMap<String, String> RESERVED_WORDS = new HashMap<>();
+    static{
+        RESERVED_WORDS.put("class", "RW_CLASS");
+        RESERVED_WORDS.put("extends", "RW_EXTENDS");
+        RESERVED_WORDS.put("public", "RW_PUBLIC");
+        RESERVED_WORDS.put("static", "RW_STATIC");
+        RESERVED_WORDS.put("void", "RW_VOID");
+        RESERVED_WORDS.put("boolean", "RW_BOOLEAN");
+        RESERVED_WORDS.put("char", "RW_CHAR");
+        RESERVED_WORDS.put("int", "RW_INT");
+        RESERVED_WORDS.put("abstract", "RW_ABSTRACT");
+        RESERVED_WORDS.put("final", "RW_FINAL");
+        RESERVED_WORDS.put("if", "RW_IF");
+        RESERVED_WORDS.put("else", "RW_ELSE");
+        RESERVED_WORDS.put("while", "RW_WHILE");
+        RESERVED_WORDS.put("return", "RW_RETURN");
+        RESERVED_WORDS.put("var", "RW_VAR");
+        RESERVED_WORDS.put("this", "RW_THIS");
+        RESERVED_WORDS.put("new", "RW_NEW");
+        RESERVED_WORDS.put("null", "RW_NULL");
+        RESERVED_WORDS.put("true", "RW_TRUE");
+        RESERVED_WORDS.put("false", "RW_FALSE");
+    }
+
+
+
     public Token nextToken() throws IOException, LexicalException {
         lexeme = "";
-        updateCurrentChar();
         return start();
     }
 
@@ -64,11 +95,11 @@ public class AnalizadorLexico {
         } else if (currentChar == '{') {
             updateLexeme();
             updateCurrentChar();
-            return openBrace();
+            return openCurly();
         } else if (currentChar == '}') {
             updateLexeme();
             updateCurrentChar();
-            return closedBrace();
+            return closedCurly();
         } else if (currentChar == ';') {
             updateLexeme();
             updateCurrentChar();
@@ -105,6 +136,10 @@ public class AnalizadorLexico {
             updateLexeme();
             updateCurrentChar();
             return ampersand();
+        } else if(currentChar == '|'){
+            updateLexeme();
+            updateCurrentChar();
+            return pipe();
         }else if(currentChar == '%'){
             updateLexeme();
             updateCurrentChar();
@@ -120,22 +155,17 @@ public class AnalizadorLexico {
         } else if(currentChar == '*'){
             updateLexeme();
             updateCurrentChar();
-            return multiplicate();
+            return multiply();
         }
         else if (currentChar == END_OF_FILE) {
             return new Token("EOF", "", sourceManager.getLineNumber());
         } else {
             updateLexeme();
-            /*
-            !!!!PREGUNTAR CUAL ES LA MEJOR MANERA...
-            String errorMsg = "Error léxico en línea "
-                    + sourceManager.getLineNumber()
-                    + ": " + lexeme
-                    + " no es un símbolo válido \n\n"
-                    + "[Error:" + lexeme + "|" + sourceManager.getLineNumber() + "]";
-
-             */
-            throw new LexicalException(lexeme, sourceManager.getLineNumber());
+            int lineNum = sourceManager.getLineNumber();
+            int columnNum = sourceManager.getColumnNumber();
+            String currentLine = sourceManager.getCurrentLine();
+            updateCurrentChar();
+            throw new LexicalException(lexeme, lineNum, columnNum, currentLine);
         }
     }
 
@@ -155,31 +185,38 @@ public class AnalizadorLexico {
             updateCurrentChar();
             return idMetVar();
         } else {
-            return new Token("idMetVar", lexeme, sourceManager.getLineNumber());
+            String tokenType = RESERVED_WORDS.getOrDefault(lexeme, "idMetVar");
+            return new Token(tokenType, lexeme, sourceManager.getLineNumber());
         }
     }
 
-    //Preguntar si la idea del contador esta bien y si la lexicalexception esta bien.
     private Token intLiteral(int cont) throws IOException, LexicalException {
-        if (cont < 9 && Character.isDigit(currentChar)) {
+        if (Character.isDigit(currentChar)) {
+            if(cont == 9){
+                updateLexeme();
+                throw new LexicalException(lexeme, sourceManager.getLineNumber(), sourceManager.getColumnNumber(), sourceManager.getCurrentLine());
+            }
             updateLexeme();
             updateCurrentChar();
             cont++;
             return intLiteral(cont);
-        } else if (cont >= 9) {
-            throw new LexicalException("El numero sobrepasa el limite de 9 digitos");
-        } else {
+        }else{
             return new Token("intLiteral", lexeme, sourceManager.getLineNumber());
         }
     }
 
     private Token charLiteral() throws IOException, LexicalException {
-        if (currentChar == '/') {
+        if (currentChar == '\\') {
             updateLexeme();
             updateCurrentChar();
             return charLiteral1();
         } else if (currentChar == END_OF_FILE) {
-            throw new LexicalException("Error: EOF en medio del caracter");
+            throw new LexicalException(lexeme, sourceManager.getLineNumber(), sourceManager.getColumnNumber(), sourceManager.getCurrentLine());
+        } else if (currentChar == '\n') {
+            int lineNum = sourceManager.getLineNumber();
+            int columnNum = sourceManager.getColumnNumber();
+            String currentLine = sourceManager.getCurrentLine();
+            throw new LexicalException(lexeme, lineNum, columnNum, currentLine);
         } else {
             updateLexeme();
             updateCurrentChar();
@@ -188,9 +225,18 @@ public class AnalizadorLexico {
     }
 
     private Token charLiteral1() throws IOException, LexicalException {
-        updateLexeme();
-        updateCurrentChar();
-        return charLiteral2();
+        if (currentChar == END_OF_FILE) {
+            throw new LexicalException(lexeme, sourceManager.getLineNumber(), sourceManager.getColumnNumber(), sourceManager.getCurrentLine());
+        } else if (currentChar == '\n') {
+            int lineNum = sourceManager.getLineNumber();
+            int columnNum = sourceManager.getColumnNumber();
+            String currentLine = sourceManager.getCurrentLine();
+            throw new LexicalException(lexeme, lineNum, columnNum, currentLine);
+        } else {
+            updateLexeme();
+            updateCurrentChar();
+            return charLiteral2();
+        }
     }
 
     private Token charLiteral2() throws IOException, LexicalException {
@@ -199,12 +245,11 @@ public class AnalizadorLexico {
             updateCurrentChar();
             return endCharLiteral();
         } else {
-            updateLexeme();
-            throw new LexicalException(lexeme, sourceManager.getLineNumber());
+            throw new LexicalException(lexeme, sourceManager.getLineNumber(), sourceManager.getColumnNumber(), sourceManager.getCurrentLine());
         }
     }
 
-    private Token endCharLiteral() throws IOException {
+    private Token endCharLiteral() {
         return new Token("charLiteral", lexeme, sourceManager.getLineNumber());
     }
 
@@ -218,36 +263,40 @@ public class AnalizadorLexico {
             updateCurrentChar();
             return endStringLiteral();
         } else if (currentChar == END_OF_FILE) {
-            throw new LexicalException("Error: EOF en medio del String");
-        } else {
+            throw new LexicalException(lexeme, sourceManager.getLineNumber(), sourceManager.getColumnNumber(), sourceManager.getCurrentLine());
+        } else if (currentChar == '\n'){
+            throw new LexicalException(lexeme, sourceManager.getLineNumber(), sourceManager.getColumnNumber(), sourceManager.getCurrentLine());
+        }else{
             updateLexeme();
             updateCurrentChar();
             return stringLiteral();
         }
     }
 
-    /* Aca luego del slash \ deberia aceptar cualquier cosa y luego se ve en otra parte del analisis del codigo? */
     private Token stringLiteral1() throws IOException, LexicalException {
         if (currentChar == END_OF_FILE) {
-            throw new LexicalException("Error: EOF en medio del String");
+            throw new LexicalException(lexeme, sourceManager.getLineNumber(), sourceManager.getColumnNumber(), sourceManager.getCurrentLine());
+        }else if (currentChar == '\n'){
+            throw new LexicalException(lexeme, sourceManager.getLineNumber(), sourceManager.getColumnNumber(), sourceManager.getCurrentLine());
+        }else {
+            updateLexeme();
+            updateCurrentChar();
+            return stringLiteral();
         }
-        updateLexeme();
-        updateCurrentChar();
-        return stringLiteral();
     }
 
-    private Token endStringLiteral() throws IOException {
+    private Token endStringLiteral() {
         return new Token("stringLiteral", lexeme, sourceManager.getLineNumber());
     }
 
     private Token commentOrDivider() throws IOException, LexicalException {
         if (currentChar == '/') {
-            updateLexeme();
             updateCurrentChar();
+            lexeme = "";
             return commentLine();
         } else if (currentChar == '*') {
-            updateLexeme();
             updateCurrentChar();
+            lexeme = "";
             return commentMultiLine();
         } else {
             return new Token("/", lexeme, sourceManager.getLineNumber());
@@ -256,6 +305,7 @@ public class AnalizadorLexico {
 
     private Token commentLine() throws IOException, LexicalException {
         if (currentChar == '\n') {
+            updateCurrentChar();
             return start();
         } else {
             updateCurrentChar();
@@ -265,6 +315,7 @@ public class AnalizadorLexico {
 
     private Token commentMultiLine() throws IOException, LexicalException {
         if (currentChar == '*') {
+            updateCurrentChar();
             return endComment();
         } else if (currentChar == END_OF_FILE) {
             throw new LexicalException("Error: EOF en medio de comentario multi-linea");
@@ -276,6 +327,7 @@ public class AnalizadorLexico {
 
     private Token endComment() throws IOException, LexicalException {
         if (currentChar == '/') {
+            updateCurrentChar();
             return start();
         } else if (currentChar == END_OF_FILE) {
             throw new LexicalException("Error: EOF en medio de comentario multi-linea");
@@ -292,11 +344,11 @@ public class AnalizadorLexico {
         return new Token(")", lexeme, sourceManager.getLineNumber());
     }
 
-    private Token openBrace() { // {
+    private Token openCurly() { // {
         return new Token("{", lexeme, sourceManager.getLineNumber());
     }
 
-    private Token closedBrace() { // }
+    private Token closedCurly() { // }
         return new Token("}", lexeme, sourceManager.getLineNumber());
     }
 
@@ -351,7 +403,7 @@ public class AnalizadorLexico {
         return new Token("!", lexeme, sourceManager.getLineNumber());
     }
 
-    private Token unequals() throws IOException{
+    private Token unequals(){
         return new Token("!=", lexeme, sourceManager.getLineNumber());
     }
 
@@ -374,13 +426,26 @@ public class AnalizadorLexico {
             updateCurrentChar();
             return doubleAmpersand();
         } else {
-            throw new LexicalException("Error léxico en línea " + sourceManager.getLineNumber() +
-                    ": '&' no es válido, use '&&'");
+            throw new LexicalException(lexeme, sourceManager.getLineNumber(), sourceManager.getColumnNumber(), sourceManager.getCurrentLine());
         }
     }
 
     private Token doubleAmpersand(){
         return new Token("&&", lexeme, sourceManager.getLineNumber());
+    }
+
+    private Token pipe() throws LexicalException, IOException {
+        if(currentChar == '|'){
+            updateLexeme();
+            updateCurrentChar();
+            return doublePipe();
+        } else {
+            throw new LexicalException(lexeme, sourceManager.getLineNumber(), sourceManager.getColumnNumber(), sourceManager.getCurrentLine());
+        }
+    }
+
+    private Token doublePipe(){
+        return new Token("||", lexeme, sourceManager.getLineNumber());
     }
 
     private Token percent(){
@@ -415,7 +480,7 @@ public class AnalizadorLexico {
         return new Token("--", lexeme, sourceManager.getLineNumber());
     }
 
-    private Token multiplicate(){
+    private Token multiply(){
         return new Token ("*", lexeme, sourceManager.getLineNumber());
     }
 }

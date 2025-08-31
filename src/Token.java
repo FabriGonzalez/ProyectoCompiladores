@@ -8,4 +8,12 @@ public class Token {
         this.lexeme = lexeme;
         this.lineNumber = lineNumber;
     }
+
+    public String getId(){
+        return id;
+    }
+
+    public String toString(){
+        return "(" + id + ", " + lexeme + ", " + lineNumber + ")";
+    }
 }
