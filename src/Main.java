@@ -1,4 +1,5 @@
 import exceptions.LexicalException;
+import model.Token;
 import sourcemanager.SourceManager;
 import sourcemanager.SourceManagerImpl;
 

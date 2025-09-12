@@ -1,3 +1,5 @@
+package model;
+
 public class Token {
     String id;
     String lexeme;
@@ -11,6 +13,14 @@ public class Token {
 
     public String getId(){
         return id;
+    }
+
+    public String getLexeme(){
+        return lexeme;
+    }
+
+    public int getLineNumber(){
+        return lineNumber;
     }
 
     public String toString(){

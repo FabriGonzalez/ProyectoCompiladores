@@ -1,4 +1,5 @@
 import exceptions.LexicalException;
+import model.Token;
 import sourcemanager.SourceManager;
 
 import java.io.IOException;
@@ -190,16 +191,16 @@ public class LexicalAnalyzer {
         }
     }
 
-    private Token intLiteral(int cont) throws IOException, LexicalException {
+    private Token intLiteral(int cantDigitos) throws IOException, LexicalException {
         if (Character.isDigit(currentChar)) {
-            if(cont == 9){
+            if(cantDigitos == 9){
                 updateLexeme();
                 throw new LexicalException(lexeme, sourceManager.getLineNumber(), sourceManager.getColumnNumber(), sourceManager.getCurrentLine());
             }
             updateLexeme();
             updateCurrentChar();
-            cont++;
-            return intLiteral(cont);
+            cantDigitos++;
+            return intLiteral(cantDigitos);
         }else{
             return new Token("intLiteral", lexeme, sourceManager.getLineNumber());
         }
@@ -232,7 +233,11 @@ public class LexicalAnalyzer {
             int columnNum = sourceManager.getColumnNumber();
             String currentLine = sourceManager.getCurrentLine();
             throw new LexicalException(lexeme, lineNum, columnNum, currentLine);
-        } else {
+        } else if(currentChar == 'u'){
+            updateLexeme();
+            updateCurrentChar();
+            return charUnicode();
+        } else{
             updateLexeme();
             updateCurrentChar();
             return charLiteral2();
@@ -240,6 +245,65 @@ public class LexicalAnalyzer {
     }
 
     private Token charLiteral2() throws IOException, LexicalException {
+        if (currentChar == '\'') {
+            updateLexeme();
+            updateCurrentChar();
+            return endCharLiteral();
+        } else {
+            throw new LexicalException(lexeme, sourceManager.getLineNumber(), sourceManager.getColumnNumber(), sourceManager.getCurrentLine());
+        }
+    }
+
+    private boolean isHexDigit(char c) {
+        return (c >= '0' && c <= '9') ||
+                (c >= 'a' && c <= 'f') ||
+                (c >= 'A' && c <= 'F');
+    }
+
+    public Token charUnicode() throws IOException, LexicalException {
+        if(isHexDigit(currentChar)){
+            updateLexeme();
+            updateCurrentChar();
+            return charUnicode1();
+        } else {
+            return charLiteral2();
+        }
+    }
+
+    public Token charUnicode1() throws LexicalException, IOException {
+        if(isHexDigit(currentChar)){
+            updateLexeme();
+            updateCurrentChar();
+            return charUnicode2();
+        } else {
+            updateLexeme();
+            throw new LexicalException(lexeme, sourceManager.getLineNumber(), sourceManager.getColumnNumber(), sourceManager.getCurrentLine());
+        }
+    }
+
+    public Token charUnicode2() throws LexicalException, IOException {
+        if(isHexDigit(currentChar)){
+            updateLexeme();
+            updateCurrentChar();
+            return charUnicode3();
+        } else {
+            updateLexeme();
+            throw new LexicalException(lexeme, sourceManager.getLineNumber(), sourceManager.getColumnNumber(), sourceManager.getCurrentLine());
+        }
+    }
+
+    public Token charUnicode3() throws LexicalException, IOException {
+        if(isHexDigit(currentChar)){
+            updateLexeme();
+            updateCurrentChar();
+            return charUnicode4();
+        } else {
+            updateLexeme();
+            throw new LexicalException(lexeme, sourceManager.getLineNumber(), sourceManager.getColumnNumber(), sourceManager.getCurrentLine());
+        }
+    }
+
+    public Token charUnicode4() throws LexicalException, IOException {
         if (currentChar == '\'') {
             updateLexeme();
             updateCurrentChar();
