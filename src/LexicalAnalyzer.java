@@ -19,26 +19,26 @@ public class LexicalAnalyzer {
 
     private static final HashMap<String, String> RESERVED_WORDS = new HashMap<>();
     static{
-        RESERVED_WORDS.put("class", "RW_CLASS");
-        RESERVED_WORDS.put("extends", "RW_EXTENDS");
-        RESERVED_WORDS.put("public", "RW_PUBLIC");
-        RESERVED_WORDS.put("static", "RW_STATIC");
-        RESERVED_WORDS.put("void", "RW_VOID");
-        RESERVED_WORDS.put("boolean", "RW_BOOLEAN");
-        RESERVED_WORDS.put("char", "RW_CHAR");
-        RESERVED_WORDS.put("int", "RW_INT");
-        RESERVED_WORDS.put("abstract", "RW_ABSTRACT");
-        RESERVED_WORDS.put("final", "RW_FINAL");
-        RESERVED_WORDS.put("if", "RW_IF");
-        RESERVED_WORDS.put("else", "RW_ELSE");
-        RESERVED_WORDS.put("while", "RW_WHILE");
-        RESERVED_WORDS.put("return", "RW_RETURN");
-        RESERVED_WORDS.put("var", "RW_VAR");
-        RESERVED_WORDS.put("this", "RW_THIS");
-        RESERVED_WORDS.put("new", "RW_NEW");
-        RESERVED_WORDS.put("null", "RW_NULL");
-        RESERVED_WORDS.put("true", "RW_TRUE");
-        RESERVED_WORDS.put("false", "RW_FALSE");
+        RESERVED_WORDS.put("class", "class");
+        RESERVED_WORDS.put("extends", "extends");
+        RESERVED_WORDS.put("public", "public");
+        RESERVED_WORDS.put("static", "static");
+        RESERVED_WORDS.put("void", "void");
+        RESERVED_WORDS.put("boolean", "boolean");
+        RESERVED_WORDS.put("char", "char");
+        RESERVED_WORDS.put("int", "int");
+        RESERVED_WORDS.put("abstract", "abstract");
+        RESERVED_WORDS.put("final", "final");
+        RESERVED_WORDS.put("if", "if");
+        RESERVED_WORDS.put("else", "else");
+        RESERVED_WORDS.put("while", "while");
+        RESERVED_WORDS.put("return", "return");
+        RESERVED_WORDS.put("var", "var");
+        RESERVED_WORDS.put("this", "this");
+        RESERVED_WORDS.put("new", "new");
+        RESERVED_WORDS.put("null", "null");
+        RESERVED_WORDS.put("true", "true");
+        RESERVED_WORDS.put("false", "false");
     }
 
 
@@ -159,7 +159,7 @@ public class LexicalAnalyzer {
             return multiply();
         }
         else if (currentChar == END_OF_FILE) {
-            return new Token("EOF", "", sourceManager.getLineNumber());
+            return new Token("$", "", sourceManager.getLineNumber());
         } else {
             updateLexeme();
             int lineNum = sourceManager.getLineNumber();
@@ -371,7 +371,9 @@ public class LexicalAnalyzer {
         if (currentChar == '\n') {
             updateCurrentChar();
             return start();
-        } else {
+        } else if (currentChar == END_OF_FILE) {
+            return start();
+        }else {
             updateCurrentChar();
             return commentLine();
         }

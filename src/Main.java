@@ -1,11 +1,10 @@
 import exceptions.LexicalException;
-import model.Token;
+import exceptions.SyntacticException;
 import sourcemanager.SourceManager;
 import sourcemanager.SourceManagerImpl;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Objects;
 
 public class Main {
     public static void main(String[] args) {
@@ -21,29 +20,20 @@ public class Main {
         try{
             sourceManager.open(filePath);
             LexicalAnalyzer lex = new LexicalAnalyzer(sourceManager);
+            SyntacticAnalyzer syn = new SyntacticAnalyzer(lex);
 
-            Token token = null;
-            boolean hasErrors = false;
-            do{
-                try{
-                    token = lex.nextToken();
-                    System.out.println(token);
-                }catch (LexicalException e) {
-                    System.out.println(e.getMessage());
-                    hasErrors = true;
-                    token = new Token("error", "error", -1);
-                }
-            }while(!Objects.equals(token.getId(), "EOF"));
+            syn.inicial();
+            System.out.println("Compilacion exitosa \n");
+            System.out.println("[SinErrores]");
 
-            if(!hasErrors){
-                System.out.println("\n[SinErrores]");
-            }
 
 
         }catch (FileNotFoundException e) {
             System.out.println("Error: No se encontro el archivo");
         } catch (IOException e) {
             System.out.println("Error al leer el archivo");
+        } catch (LexicalException | SyntacticException e) {
+            System.out.println(e.getMessage());
         }
 
         try {
