@@ -1,4 +1,3 @@
-///[SinErrores]
 
 class Persona {
     int edad;

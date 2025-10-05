@@ -1,104 +1,23 @@
+package Analyzers;
+
 import exceptions.LexicalException;
+import exceptions.SemanticException;
 import exceptions.SyntacticException;
-import model.Token;
+import model.*;
 
 import java.io.IOException;
-import java.util.Set;
+
+import static model.FirstSets.*;
 
 public class SyntacticAnalyzer {
     LexicalAnalyzer aLex;
     Token currentToken;
+    SymbolTable ts;
 
-    private static final Set<String> pInicial = Set.of("abstract", "static", "final", "class", "$");
-
-    private static final Set<String> pListaClases = Set.of("abstract", "static", "final", "class");
-    private static final Set<String> pClase = Set.of("abstract", "static", "final", "class");
-    private static final Set<String> pModificadorOpcional = Set.of("abstract", "static", "final");
-    private static final Set<String> pHerenciaOpcional = Set.of("extends");
-
-    private static final Set<String> pListaMiembros = Set.of("abstract", "static", "final", "boolean", "char", "int", "idClase", "void", "public");
-    private static final Set<String> pMiembro = Set.of("abstract", "static", "final", "boolean", "char", "int", "idClase", "void", "public");
-
-    private static final Set<String> pMetodoConModificador = Set.of("abstract", "static", "final");
-    private static final Set<String> pRModificadorOpcional = Set.of("abstract", "static", "final");
-    private static final Set<String> pRMetodoConModificador = Set.of("boolean", "char", "int", "void");
-    private static final Set<String> pMetodoOAtributo = Set.of("boolean", "char", "int", "idClase", "void");
-    private static final Set<String> pRMetodoOAtributo = Set.of("(", ";");
-    private static final Set<String> pRMetodo = Set.of("(");
-    private static final Set<String> pConstructor = Set.of("public");
-    private static final Set<String> pTipoMetodo = Set.of("boolean", "char", "int", "idClase", "void");
-    private static final Set<String> pTipo = Set.of("boolean", "char", "int", "idClase");
-    private static final Set<String> pTipoPrimitivo = Set.of("boolean", "char", "int");
-    private static final Set<String> pArgsFormales = Set.of("(");
-    private static final Set<String> pListaArgsFormalesOpcional = Set.of("boolean", "char", "int", "idClase");
-    private static final Set<String> pListaArgsFormales = Set.of("boolean", "char", "int", "idClase");
-    private static final Set<String> pRListaArgsFormales = Set.of(",");
-    private static final Set<String> pRArgFormalListaArgFormal = Set.of("boolean", "char", "int", "idClase");
-    private static final Set<String> pArgFormal = Set.of("boolean", "char", "int", "idClase");
-
-    private static final Set<String> pBloqueOpcional = Set.of("{", ";");
-    private static final Set<String> pBloque = Set.of("{");
-
-    private static final Set<String> pListaSentencias = Set.of(";", "var", "return", "if", "while", "{", "+", "-", "++", "--", "!",
-            "true", "false", "intLiteral", "charLiteral", "null", "this", "stringLiteral", "new",
-            "idClase", "(", "idMetVar");
-    private static final Set<String> pSentencia = Set.of(";", "var", "return", "if", "while", "{", "+", "-", "++", "--", "!",
-            "true", "false", "intLiteral", "charLiteral", "null", "this", "stringLiteral", "new",
-            "idClase", "(", "idMetVar");
-    private static final Set<String> pAsignacionOLlamada = Set.of("+", "-", "++", "--", "!", "true", "false", "intLiteral",
-            "charLiteral", "null", "this", "stringLiteral", "new", "idClase", "(", "idMetVar");
-
-    private static final Set<String> pVarLocal = Set.of("var");
-    private static final Set<String> pReturn = Set.of("return");
-    private static final Set<String> pExpresionOpcional = Set.of("+", "-", "++", "--", "!", "true", "false", "intLiteral",
-            "charLiteral", "null", "this", "stringLiteral", "new", "idClase", "(", "idMetVar");
-
-    private static final Set<String> pIf = Set.of("if");
-    private static final Set<String> pRIf = Set.of("else");
-    private static final Set<String> pWhile = Set.of("while");
-
-    private static final Set<String> pExpresion = Set.of("+", "-", "++", "--", "!", "true", "false", "intLiteral",
-            "charLiteral", "null", "this", "stringLiteral", "new", "idClase", "(", "idMetVar");
-    private static final Set<String> pRExpresion = Set.of("=");
-    private static final Set<String> pOperadorAsignacion = Set.of("=");
-
-    private static final Set<String> pExpresionCompuesta = Set.of("+", "-", "++", "--", "!", "true", "false", "intLiteral",
-            "charLiteral", "null", "this", "stringLiteral", "new", "idClase", "(", "idMetVar");
-    private static final Set<String> pRExpresionCompuesta = Set.of("||", "&&", "==", "!=", "<", ">", "<=", ">=", "+", "-", "*", "/", "%");
-
-    private static final Set<String> pRExpresionBasicaCompuesta = Set.of("+", "-", "++", "--", "!", "true", "false", "intLiteral",
-            "charLiteral", "null", "this", "stringLiteral", "new", "idClase", "(", "idMetVar");
-
-    private static final Set<String> pOperadorBinario = Set.of("||", "&&", "==", "!=", "<", ">", "<=", ">=", "+", "-", "*", "/", "%");
-    private static final Set<String> pExpresionBasica = Set.of("+", "-", "++", "--", "!", "true", "false", "intLiteral",
-            "charLiteral", "null", "this", "stringLiteral", "new", "idClase", "(", "idMetVar");
-    private static final Set<String> pOperadorUnario = Set.of("+", "-", "++", "--", "!");
-    private static final Set<String> pOperando = Set.of("true", "false", "intLiteral", "charLiteral", "null", "this",
-            "stringLiteral", "new", "idClase", "(", "idMetVar");
-    private static final Set<String> pPrimitivo = Set.of("true", "false", "intLiteral", "charLiteral", "null");
-    private static final Set<String> pReferencia = Set.of("this", "stringLiteral", "new", "idClase", "(", "idMetVar");
-    private static final Set<String> pRReferencia = Set.of(".");
-    private static final Set<String> pVarOMetodoEncadenado = Set.of(".");
-    private static final Set<String> pRVarOMetodoEncadenado = Set.of("(");
-    private static final Set<String> pPrimario = Set.of("this", "stringLiteral", "new", "idClase", "(", "idMetVar");
-    private static final Set<String> pAccesoVarOLlamadaAMetodo = Set.of("idMetVar");
-    private static final Set<String> pRAccesoVarOLlamadaMetodo = Set.of("(");
-    private static final Set<String> pLlamadaConstructor = Set.of("new");
-    private static final Set<String> pExpresionParentizada = Set.of("(");
-    private static final Set<String> pLlamadaMetodoEstatico = Set.of("idClase");
-    private static final Set<String> pArgsActuales = Set.of("(");
-    private static final Set<String> pListaExpsOpcional = Set.of("+", "++", "-", "--", "!", "true", "false", "intLiteral",
-            "charLiteral", "null", "this", "stringLiteral", "new", "idClase", "(", "idMetVar");
-    private static final Set<String> pListaExps = Set.of("+", "++", "-", "--", "!", "true", "false", "intLiteral",
-            "charLiteral", "null", "this", "stringLiteral", "new", "idClase", "(", "idMetVar");
-    private static final Set<String> pRListaExps = Set.of(",");
-    private static final Set<String> pRExpListaExps = Set.of("+", "-", "++", "--", "!", "true", "false", "intLiteral",
-            "charLiteral", "null", "this", "stringLiteral", "new", "idClase", "(", "idMetVar");
-
-
-    public SyntacticAnalyzer(LexicalAnalyzer lex) throws LexicalException, IOException, SyntacticException {
+    public SyntacticAnalyzer(LexicalAnalyzer lex, SymbolTable ts) throws LexicalException, IOException, SyntacticException {
         aLex = lex;
         currentToken = aLex.nextToken();
+        this.ts = ts;
         inicial();
     }
 
@@ -125,31 +44,48 @@ public class SyntacticAnalyzer {
     }
 
     void clase() throws LexicalException, SyntacticException, IOException {
-        modificadorOpcional();
+        String modificador = modificadorOpcional();
         match("class");
+        Token tk = currentToken;
         match("idClase");
-        herenciaOpcional();
+        Classs newClass = new Classs(tk, ts);
+        ts.setCurrentClass(newClass);
+        ts.getCurrentClass().setModifier(modificador);
+        Token parentName = herenciaOpcional();
+        ts.getCurrentClass().setParent(parentName);
         match("{");
         listaMiembros();
         match("}");
     }
 
-    void modificadorOpcional() throws LexicalException, SyntacticException, IOException {
+    String modificadorOpcional() throws LexicalException, SyntacticException, IOException {
         switch (currentToken.getId()) {
-            case "abstract" -> match("abstract");
-            case "static" -> match("static");
-            case "final" -> match("final");
+            case "abstract" -> {
+                match("abstract");
+                return "abstract";
+            }
+            case "static" -> {
+                match("static");
+                return "static";
+            }
+            case "final" -> {
+                match("final");
+                return "final";
+            }
             default -> {
+                return null;
             }
         }
     }
 
-    void herenciaOpcional() throws LexicalException, SyntacticException, IOException {
+    Token herenciaOpcional() throws LexicalException, SyntacticException, IOException {
         if (currentToken.getId().equals("extends")) {
             match("extends");
+            Token parentTk = currentToken;
             match("idClase");
+            return parentTk;
         } else {
-
+            return new Token("idClase", "Object", 0);
         }
     }
 
@@ -175,43 +111,79 @@ public class SyntacticAnalyzer {
     }
 
     void metodoConModificador() throws SyntacticException, LexicalException, IOException {
-        r_modificadorOpcional();
-        r_metodoConModificador();
+        Token modifier = r_modificador();
+        r_metodoConModificador(modifier);
     }
 
-    void r_modificadorOpcional() throws SyntacticException, LexicalException, IOException {
+    Token r_modificador() throws SyntacticException, LexicalException, IOException {
+        Token tk = currentToken;
         switch (currentToken.getId()) {
             case "abstract" -> match("abstract");
             case "static" -> match("static");
             case "final" -> match("final");
             default -> throw new SyntacticException(currentToken, "abstract, static o final");
         }
+        return tk;
     }
 
-    void r_metodoConModificador() throws LexicalException, SyntacticException, IOException {
-        tipoMetodo();
+    void r_metodoConModificador(Token modifier) throws LexicalException, SyntacticException, IOException {
+        Token typeTk = tipoMetodo();
+        Type type = ts.resolveType(typeTk);
+        Token name = currentToken;
         match("idMetVar");
+        Method newMethod = new Method(name, type, modifier);
+        ts.setCurrentMethod(newMethod);
+
+        ts.getCurrentClass().addMethod(newMethod);
+
         r_metodo();
     }
 
     void metodoOAtributo() throws LexicalException, SyntacticException, IOException {
+        Token typeToken;
+        Token currentTk;
+        Type type;
+
         if(pTipo.contains(currentToken.getId())){
-            tipo();
+            typeToken = tipo();
+            type = ts.resolveType(typeToken);
+            currentTk = currentToken;
+
             match("idMetVar");
-            r_metodoOAtributo();
+
+            r_metodoOAtributo(currentTk, type);
         } else if(currentToken.getId().equals("void")){
+            currentTk = currentToken;
+
             match("void");
+
+            type = ts.resolveType(currentTk);
+            currentTk = currentToken;
+
             match("idMetVar");
+
+            Method newMethod = new Method(currentTk, type);
+            ts.setCurrentMethod(newMethod);
+            ts.getCurrentClass().addMethod(newMethod);
+
             r_metodo();
         } else {
             throw new SyntacticException(currentToken, "boolean o char o int o void o idClase");
         }
     }
 
-    void r_metodoOAtributo() throws LexicalException, SyntacticException, IOException {
+    void r_metodoOAtributo(Token currentTk, Type type) throws LexicalException, SyntacticException, IOException {
         if(pRMetodo.contains(currentToken.getId())){
+
+            Method newMethod = new Method(currentTk, type);
+            ts.setCurrentMethod(newMethod);
+            ts.getCurrentClass().addMethod(newMethod);
+
             r_metodo();
         } else if(currentToken.getId().equals(";")){
+            Attribute newAttrib = new Attribute(currentTk, type);
+
+            ts.getCurrentClass().addAttribute(newAttrib);
             match(";");
         } else {
             throw new SyntacticException(currentToken, "( o ;");
@@ -225,48 +197,51 @@ public class SyntacticAnalyzer {
 
     void constructor() throws SyntacticException, LexicalException, IOException {
        match("public");
+       Token tk = currentToken;
        match("idClase");
+       Constructor ctor = new Constructor(tk, ts.getCurrentClass());
+       ts.setCurrentMethod(ctor);
+       if(ts.getCurrentClass().getCtor() != null){
+           throw new SemanticException("La clase actual " + ts.getCurrentClass().getName() + "ya tiene un constructor asociado");
+       }
+       ts.getCurrentClass().setCtor(ctor);
        argsFormales();
        bloque();
     }
 
-    void tipoMetodo() throws SyntacticException, LexicalException, IOException {
+    Token tipoMetodo() throws SyntacticException, LexicalException, IOException {
         if (pTipo.contains(currentToken.getId())) {
-            tipo();
+            return tipo();
         } else if (currentToken.getId().equals("void")) {
+            Token tk = currentToken;
             match("void");
+            return tk;
         } else {
             throw new SyntacticException(currentToken, "void o idClase o boolean o char o int");
         }
     }
 
-    void tipo() throws LexicalException, SyntacticException, IOException {
+    Token tipo() throws LexicalException, SyntacticException, IOException {
         if (pTipoPrimitivo.contains(currentToken.getId())) {
-            tipoPrimitivo();
+            return tipoPrimitivo();
         } else if (currentToken.getId().equals("idClase")) {
+            Token tk = currentToken;
             match("idClase");
-            argumentoGenericoOpcional();
+            return tk;
         } else {
             throw new SyntacticException(currentToken, "boolean o char o int o idClase");
         }
     }
 
-    void argumentoGenericoOpcional() throws LexicalException, SyntacticException, IOException {
-        if(currentToken.getId().equals("<")){
-            match("<");
-            //Seguir logro
-        } else {
-
-        }
-    }
-
-    void tipoPrimitivo() throws SyntacticException, LexicalException, IOException {
+    Token tipoPrimitivo() throws SyntacticException, LexicalException, IOException {
+        Token tk = currentToken;
         switch (currentToken.getId()) {
             case "boolean" -> match("boolean");
             case "char" -> match("char");
             case "int" -> match("int");
             default -> throw new SyntacticException(currentToken, "boolean o char o int");
         }
+        return tk;
     }
 
     void argsFormales() throws SyntacticException, LexicalException, IOException {
@@ -302,8 +277,15 @@ public class SyntacticAnalyzer {
     }
 
     void argFormal() throws LexicalException, SyntacticException, IOException {
-        tipo();
+        Token typeTk = tipo();
+        Type type = ts.resolveType(typeTk);
+
+        Token tk = currentToken;
         match("idMetVar");
+
+        Param newParam = new Param(tk);
+        newParam.setType(type);
+        ts.getCurrentMethod().addParam(newParam);
     }
 
     void bloqueOpcional() throws LexicalException, SyntacticException, IOException {

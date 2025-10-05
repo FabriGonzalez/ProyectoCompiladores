@@ -1,4 +1,8 @@
+import Analyzers.LexicalAnalyzer;
+import Analyzers.SymbolTable;
+import Analyzers.SyntacticAnalyzer;
 import exceptions.LexicalException;
+import exceptions.SemanticException;
 import exceptions.SyntacticException;
 import sourcemanager.SourceManager;
 import sourcemanager.SourceManagerImpl;
@@ -20,9 +24,11 @@ public class Main {
         try{
             sourceManager.open(filePath);
             LexicalAnalyzer lex = new LexicalAnalyzer(sourceManager);
-            SyntacticAnalyzer syn = new SyntacticAnalyzer(lex);
+            SymbolTable ts = new SymbolTable();
+            SyntacticAnalyzer syn = new SyntacticAnalyzer(lex, ts);
+            ts.checkDeclarations();
+            ts.consolidateAllClasses();
 
-            syn.inicial();
             System.out.println("Compilacion exitosa \n");
             System.out.println("[SinErrores]");
 
@@ -32,7 +38,7 @@ public class Main {
             System.out.println("Error: No se encontro el archivo");
         } catch (IOException e) {
             System.out.println("Error al leer el archivo");
-        } catch (LexicalException | SyntacticException e) {
+        } catch (LexicalException | SyntacticException | SemanticException e) {
             System.out.println(e.getMessage());
         }
 
