@@ -5,26 +5,43 @@ import exceptions.SemanticException;
 
 import java.util.List;
 
-public class Method extends GenericMethod{
+public class Method extends GenericMethod {
     String modifier;
     Type returnType;
 
-    public Method(Token tk, Type t){
-        super(tk.getLexeme());
+    public Method(Token tk, Type t) {
+        super(tk.getLexeme(), tk.getLineNumber());
         returnType = t;
     }
 
     public Method(Token tk, Type t, Token m) {
-        super(tk.getLexeme());
+        super(tk.getLexeme(), tk.getLineNumber());
         returnType = t;
         modifier = m.getLexeme();
+        hasBlock = false;
+    }
+
+    public String getModifier(){
+        return modifier;
     }
 
     public void isCorrectDeclared(SymbolTable ts){
-        boolean primitive = returnType instanceof PrimType;
-        boolean voidType = returnType instanceof VoidType;
-        if(!(primitive || voidType || ts.getClass(returnType.getName()) != null )){
-            throw new SemanticException("Error tipo de retorno en metodo no declarado");
+
+        if(hasBlock && isAbstract()){
+            throw new SemanticException(declaredLine, "El metodo abstracto " + name + " tiene bloque", name);
+        }
+
+        if(!isAbstract() && !hasBlock){
+            throw new SemanticException(declaredLine, "El metodo " + name + " no tiene bloque y no tiene modificador abstract", name);
+        }
+
+        Classs a = ts.getClass(returnType.getName());
+        if(returnType instanceof ReferenceType){
+            if(a != null){
+                ((ReferenceType) returnType).setAssociatedClass(a);
+            } else {
+                throw new SemanticException(returnType.getDeclaredLine(), "el tipo de retorno del metodo " + name + " no existe", returnType.getName());
+            }
         }
 
         for (Param p : params) {
@@ -40,9 +57,6 @@ public class Method extends GenericMethod{
         return returnType;
     }
 
-    public List<Param> getParams(){
-        return params;
-    }
 
     public boolean isFinal(){
         return modifier != null && modifier.equals("final");
@@ -56,7 +70,6 @@ public class Method extends GenericMethod{
         if(!this.name.equals(m.getName())) return false;
         if(!this.returnType.getName().equals(m.getReturnType().getName())) return false;
         if(this.params.size() != m.getParams().size()) return false;
-
         for(int i = 0; i < this.params.size(); i++){
             Param p1 = this.params.get(i);
             Param p2 = m.getParams().get(i);
@@ -64,5 +77,9 @@ public class Method extends GenericMethod{
         }
 
         return true;
+    }
+
+    public Type getEffectiveReturnType() {
+        return returnType;
     }
 }

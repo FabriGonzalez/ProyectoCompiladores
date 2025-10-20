@@ -1,13 +1,22 @@
 package model;
 
-public class Type {
+abstract public class Type {
     String name;
+    int declaredLine;
 
-    public Type(String n){
-        name = n;
+    public Type(Token tk){
+        name = tk.getLexeme();
+        declaredLine = tk.getLineNumber();
     }
 
     public String getName(){
         return name;
     }
+
+    public int getDeclaredLine(){
+        return declaredLine;
+    }
+
+    public abstract boolean isCompatible(Type t);
+
 }

@@ -24,7 +24,7 @@ public class Main {
         try{
             sourceManager.open(filePath);
             LexicalAnalyzer lex = new LexicalAnalyzer(sourceManager);
-            SymbolTable ts = new SymbolTable();
+            SymbolTable ts = SymbolTable.getInstance();
             SyntacticAnalyzer syn = new SyntacticAnalyzer(lex, ts);
             ts.checkDeclarations();
             ts.consolidateAllClasses();
@@ -47,5 +47,7 @@ public class Main {
         } catch (IOException e) {
             System.out.println("Error al cerrar el sourceManager");
         }
+
+        SymbolTable.removeInstance();
     }
 }

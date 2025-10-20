@@ -6,9 +6,15 @@ import exceptions.SemanticException;
 public class Param {
     String name;
     Type type;
+    int declaredLine;
 
     public Param(Token tk){
         name = tk.getLexeme();
+        declaredLine = tk.getLineNumber();
+    }
+
+    public int getDeclaredLine(){
+        return declaredLine;
     }
 
     public String getName(){
@@ -20,9 +26,17 @@ public class Param {
     }
 
     public void isCorrectDeclared(SymbolTable ts){
-        boolean primitive = type instanceof PrimType;
-        if(!(primitive || ts.getClass(type.getName()) != null)){
-            throw new SemanticException("Error tipo de retorno en atributo no declarado");
+        Classs a = ts.getClass(type.getName());
+        if(type instanceof ReferenceType){
+            if(a != null){
+                ((ReferenceType) type).setAssociatedClass(a);
+            } else {
+                throw new SemanticException(type.getDeclaredLine(), "la clase del parametro " + name + " no existe", type.getName());
+            }
         }
+    }
+
+    public Type getType(){
+        return type;
     }
 }

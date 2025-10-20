@@ -159,6 +159,10 @@ public class LexicalAnalyzer {
             updateLexeme();
             updateCurrentChar();
             return multiply();
+        } else if(currentChar == '?'){
+            updateLexeme();
+            updateCurrentChar();
+            return new Token("?", "?", sourceManager.getLineNumber());
         }
         else if (currentChar == END_OF_FILE) {
             return new Token("$", "", sourceManager.getLineNumber());

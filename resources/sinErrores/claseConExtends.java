@@ -1,4 +1,6 @@
 ///[SinErrores]
+
+class Persona{}
 class Contador extends Persona {
     int valor;
 

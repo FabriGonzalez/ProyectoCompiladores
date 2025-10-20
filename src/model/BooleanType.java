@@ -1,8 +1,11 @@
 package model;
 
 public class BooleanType extends PrimType{
+    public BooleanType(Token tk){
+        super(tk);
+    }
 
-    public BooleanType(){
-        super("boolean");
+    public boolean isCompatible(Type t){
+        return t instanceof BooleanType;
     }
 }
