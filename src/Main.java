@@ -28,6 +28,7 @@ public class Main {
             SyntacticAnalyzer syn = new SyntacticAnalyzer(lex, ts);
             ts.checkDeclarations();
             ts.consolidateAllClasses();
+            ts.check();
 
             System.out.println("Compilacion exitosa \n");
             System.out.println("[SinErrores]");

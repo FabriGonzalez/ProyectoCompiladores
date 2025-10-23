@@ -24,4 +24,5 @@ public class Constructor extends GenericMethod{
     public boolean isConstructor() {
         return true;
     }
+
 }

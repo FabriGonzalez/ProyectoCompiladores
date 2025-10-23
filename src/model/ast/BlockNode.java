@@ -1,5 +1,6 @@
 package model.ast;
 
+import java.util.LinkedList;
 import java.util.List;
 
 public class BlockNode extends StatementNode{
@@ -8,6 +9,7 @@ public class BlockNode extends StatementNode{
     List<LocalVarNode> localVars;
 
     public BlockNode(){
+        localVars = new LinkedList<>();
     }
 
     public void setSents(List<StatementNode> l){
@@ -41,6 +43,17 @@ public class BlockNode extends StatementNode{
         return false;
     }
 
+    public LocalVarNode getLocalVar(String name){
+        BlockNode currentBlock = this;
+        while(currentBlock != null){
+            if(currentBlock.hasLocalVar(name)){
+                return currentBlock.getVar(name);
+            }
+            currentBlock = currentBlock.parent;
+        }
+        return null;
+    }
+
     public boolean isLocalVarDeclared(String name){
         BlockNode currentBlock = this;
         while(currentBlock != null){
@@ -50,5 +63,14 @@ public class BlockNode extends StatementNode{
             currentBlock = currentBlock.parent;
         }
         return false;
+    }
+
+    private LocalVarNode getVar(String name){
+        for(LocalVarNode v : localVars){
+            if(v.getName().equals(name)){
+                return v;
+            }
+        }
+        return null;
     }
 }

@@ -80,11 +80,10 @@ public class SymbolTable {
         return clase != null;
     }
 
-    void addClass(Classs c){
-        if (classes.containsKey(c.getName())) {
-            throw new SemanticException(c.getDeclaredLine(), "Clase redeclarada: " + c.getName(), c.getName());
+    public void check(){
+        for (Classs c : classes.values()){
+            c.check();
         }
-        classes.put(c.getName(), c);
     }
 
 

@@ -17,7 +17,6 @@ public class BinaryExpressionNode extends CompoundExpressionNode {
         operator = o;
     }
 
-
     public Type check() {
         Type leftType = leftNode.check();
         Type rightType = rightNode.check();

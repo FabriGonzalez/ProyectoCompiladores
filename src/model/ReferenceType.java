@@ -19,9 +19,9 @@ public class ReferenceType extends Type {
 
         ReferenceType otherRef = (ReferenceType) t;
 
-        Classs current = this.associatedClass;
+        Classs current = otherRef.associatedClass;
         while (current != null) {
-            if (current.getName().equals(otherRef.associatedClass.getName())) {
+            if (current.getName().equals(this.associatedClass.getName())) {
                 return true;
             }
             current = current.getParentClass();

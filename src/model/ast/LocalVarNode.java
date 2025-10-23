@@ -6,7 +6,6 @@ import model.NullType;
 import model.Token;
 import model.Type;
 
-import javax.swing.plaf.nimbus.State;
 
 public class LocalVarNode extends StatementNode {
     Token tkLocalVar;
@@ -35,7 +34,7 @@ public class LocalVarNode extends StatementNode {
         if(expressionType instanceof NullType){
             throw new SemanticException(tkLocalVar.getLineNumber(), "La variable local " + tkLocalVar.getLexeme() + " es de tipo nulo", tkLocalVar.getLexeme());
         }
-
+        associatedBlock.setLocalVar(this);
         localVarType = expressionType;
     }
 

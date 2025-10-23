@@ -4,7 +4,6 @@ import Analyzers.SymbolTable;
 import exceptions.SemanticException;
 import model.*;
 
-import java.util.Iterator;
 import java.util.List;
 
 public class ConstructorCallNode extends PrimaryNode{
@@ -47,7 +46,8 @@ public class ConstructorCallNode extends PrimaryNode{
         }
 
 
-        Type refType = new ReferenceType(new Token("idClase", associatedClass.getName(), associatedClass.getDeclaredLine()));
+        ReferenceType refType = new ReferenceType(new Token("idClase", associatedClass.getName(), associatedClass.getDeclaredLine()));
+        refType.setAssociatedClass(associatedClass);
 
         if(chain != null){
             return chain.check(refType);

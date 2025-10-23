@@ -2,9 +2,6 @@ package model;
 
 import exceptions.SemanticException;
 import model.ast.BlockNode;
-import model.ast.LocalVarNode;
-
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -36,9 +33,6 @@ public class GenericMethod {
         hasBlock = true;
     }
 
-    public BlockNode getBlock(){
-        return block;
-    }
 
     public boolean getHasBlock(){
         return hasBlock;
@@ -73,5 +67,11 @@ public class GenericMethod {
 
     public List<Param> getParams(){
         return params;
+    }
+
+    public void check(){
+        if(this.block != null){
+            this.block.check();
+        }
     }
 }

@@ -7,11 +7,13 @@ public class VarAccessNode extends PrimaryNode{
     Token varTk;
     Classs associatedClass;
     GenericMethod associatedMethod;
+    BlockNode associatedBlock;
 
-    public VarAccessNode(Token tk, Classs c, GenericMethod m){
+    public VarAccessNode(Token tk, Classs c, GenericMethod m, BlockNode b){
         varTk = tk;
         associatedClass = c;
         associatedMethod = m;
+        associatedBlock = b;
     }
 
     @Override
@@ -41,6 +43,15 @@ public class VarAccessNode extends PrimaryNode{
             }
         }
 
+        LocalVarNode localVar = associatedBlock.getLocalVar(varTk.getLexeme());
+        if(localVar != null){
+            Type baseType = localVar.getLocalVarType();
+            if(chain != null){
+                return chain.check(baseType);
+            } else {
+                return baseType;
+            }
+        }
         throw new SemanticException(varTk.getLineNumber(), "La variabe " + varTk.getLexeme() + " no esta declarada", varTk.getLexeme());
 
     }

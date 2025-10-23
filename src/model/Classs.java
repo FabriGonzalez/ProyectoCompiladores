@@ -153,6 +153,10 @@ public class Classs {
                     if (m.isFinal() || m.isStatic()) {
                         throw new SemanticException(redef.getDeclaredLine(), "en clase " + name + " se redefine el metodo " + m.getName() + " el cual es final o static ", m.getName());
                     }
+
+                    if(redef.isStatic()){
+                        throw new SemanticException(redef.getDeclaredLine(), "Se redefine un metodo usando statico como modificador en la redefinicion", redef.getName());
+                    }
                 } else {
                     if(m.isAbstract() && !isAbstract()){
                         throw new SemanticException(declaredLine, "la clase " + name + " es concreta y no redefine el metodo abstracto " + m.getName(), name);
@@ -209,5 +213,15 @@ public class Classs {
 
     public Method getMethodByName(String name){
         return methods.get(name);
+    }
+
+    public void check(){
+        if(ctor != null){
+            ctor.check();
+        }
+
+        for(Method m : methods.values()){
+            m.check();
+        }
     }
 }

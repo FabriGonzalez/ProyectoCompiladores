@@ -368,7 +368,6 @@ public class SyntacticAnalyzer {
         match("=");
         CompoundExpressionNode rightNode = expresionCompuesta();
         LocalVarNode localVar = new LocalVarNode(id, rightNode, ts.getCurrentMethod(),ts.getCurrentBlock());
-        ts.getCurrentBlock().setLocalVar(localVar);
         return localVar;
     }
 
@@ -603,7 +602,7 @@ public class SyntacticAnalyzer {
             List<ExpressionNode> params = argsActuales();
             return new MethodCallNode(tk, params, ts.getCurrentClass());
         } else {
-            return new VarAccessNode(tk, ts.getCurrentClass(), ts.getCurrentMethod());
+            return new VarAccessNode(tk, ts.getCurrentClass(), ts.getCurrentMethod(), ts.getCurrentBlock());
         }
     }
 

@@ -38,7 +38,7 @@ public class MethodCallNode extends PrimaryNode{
             Type argType = params.get(i).check();
             Type expectedType = m.getParams().get(i).getType();
             if(!argType.isCompatible(expectedType)){
-                throw new SemanticException(methodTk.getLineNumber(), "El argumento " + (i + 1) + " es de tipo " + argType + " y se esperaba " + expectedType, methodTk.getLexeme());
+                throw new SemanticException(methodTk.getLineNumber(), "El argumento " + (i + 1) + " es de tipo " + argType.getName() + " y se esperaba " + expectedType.getName(), methodTk.getLexeme());
             }
         }
 
