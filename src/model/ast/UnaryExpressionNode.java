@@ -5,6 +5,7 @@ import model.BooleanType;
 import model.IntType;
 import model.Token;
 import model.Type;
+import sourcemanager.OutputManager;
 
 public class UnaryExpressionNode extends CompoundExpressionNode{
     OperandNode operand;
@@ -36,5 +37,27 @@ public class UnaryExpressionNode extends CompoundExpressionNode{
         }
 
         return operandType;
+    }
+
+    @Override
+    public void generate(boolean isLeftAssignment) {
+        operand.generate(isLeftAssignment);
+        String op = operator.getLexeme();
+        switch (op){
+            case "++" ->{
+                OutputManager.gen("PUSH 1");
+                OutputManager.gen("ADD");
+            }
+            case "--" -> {
+                OutputManager.gen("PUSH 1");
+                OutputManager.gen("SUB");
+            }
+            case "-" -> {
+                OutputManager.gen("NEG");
+            }
+            case "!" -> {
+                OutputManager.gen("NOT");
+            }
+        }
     }
 }

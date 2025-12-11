@@ -9,4 +9,9 @@ public class CharType extends PrimType{
     public boolean isCompatible(Type t){
         return t instanceof CharType;
     }
+
+    @Override
+    public boolean isCompatibleForCompare(Type t) {
+        return t instanceof CharType;
+    }
 }

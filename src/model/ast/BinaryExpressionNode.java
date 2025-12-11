@@ -5,6 +5,7 @@ import model.BooleanType;
 import model.IntType;
 import model.Token;
 import model.Type;
+import sourcemanager.OutputManager;
 
 public class BinaryExpressionNode extends CompoundExpressionNode {
     CompoundExpressionNode leftNode;
@@ -57,6 +58,57 @@ public class BinaryExpressionNode extends CompoundExpressionNode {
         }
 
         throw new SemanticException(operator.getLineNumber(), "Operador desconocido", op);
+    }
+
+    @Override
+    public void generate(boolean a) {
+        leftNode.generate(false);
+        rightNode.generate(false);
+        String op = operator.getLexeme();
+        switch (op){
+            case "+" -> {
+                OutputManager.gen("ADD");
+            }
+            case "-" -> {
+                OutputManager.gen("SUB");
+            }
+            case "*" -> {
+                OutputManager.gen("MUL");
+            }
+            case "/" -> {
+                OutputManager.gen("DIV");
+            }
+            case "%" -> {
+                OutputManager.gen("MOD");
+            }
+            case "!=" -> {
+                OutputManager.gen("NE");
+            }
+            case "&&" -> {
+                OutputManager.gen("AND");
+            }
+            case "||" -> {
+                OutputManager.gen("OR");
+            }
+            case "!" -> {
+                OutputManager.gen("NOT");
+            }
+            case "==" -> {
+                OutputManager.gen("EQ");
+            }
+            case "<" -> {
+                OutputManager.gen("LT");
+            }
+            case ">" -> {
+                OutputManager.gen("GT");
+            }
+            case "<=" -> {
+                OutputManager.gen("LE");
+            }
+            case ">=" ->{
+                OutputManager.gen("GE");
+            }
+        }
     }
 
     public Token getExpressionToken(){

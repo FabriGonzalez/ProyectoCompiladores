@@ -3,10 +3,11 @@ package model;
 import Analyzers.SymbolTable;
 import exceptions.SemanticException;
 
-public class Attribute {
+public class Attribute implements VarEntry{
     String name;
     Type type;
     int declaredLine;
+    int offset;
 
     public Attribute(Token tk, Type t){
         name = tk.getLexeme();
@@ -35,5 +36,13 @@ public class Attribute {
 
     public Type getType(){
         return type;
+    }
+
+    public int getOffset() {
+        return offset;
+    }
+
+    public void setOffset(int off){
+        offset = off;
     }
 }

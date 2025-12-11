@@ -11,10 +11,20 @@ public class GenericMethod {
     int declaredLine;
     boolean hasBlock;
     BlockNode block;
+    boolean isChecked;
+    Classs associatedClass;
+    boolean isGenerated;
 
-    public GenericMethod(String n, int declaredLine){
+    public GenericMethod(String n, int declaredLine, Classs aC){
         name = n;
         this.declaredLine = declaredLine;
+        isChecked = false;
+        associatedClass = aC;
+        isGenerated = false;
+    }
+
+    public Classs getAssociatedClass(){
+        return associatedClass;
     }
 
     public void setBlock(BlockNode b){
@@ -56,13 +66,12 @@ public class GenericMethod {
     }
 
     public Param getParamByName(String name){
-        Param param = null;
         for (Param p : params){
             if(p.getName().equals(name)){
-                param = p;
+                return p;
             }
         }
-        return param;
+        return null;
     }
 
     public List<Param> getParams(){
@@ -70,8 +79,26 @@ public class GenericMethod {
     }
 
     public void check(){
-        if(this.block != null){
-            this.block.check();
+        if(!isChecked){
+            if(this.block != null){
+                this.block.check();
+            }
+            isChecked = true;
+        }
+        assignParamOffsets();
+    }
+
+    private void assignParamOffsets() {
+        int raOffset = isStatic() ? 2 : 3;
+        int currentOffset = raOffset + params.size();
+
+        for (Param p : params) {
+            p.setOffset(currentOffset--);
         }
     }
+
+    public boolean isStatic(){
+        return false;
+    }
+
 }

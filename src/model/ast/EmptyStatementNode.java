@@ -1,8 +1,12 @@
 package model.ast;
 
-public class EmptyStatementNode extends StatementNode{
+public class EmptyStatementNode extends StatementNode {
 
-    public void check(){
+    public void check() {
+        return;
+    }
+
+    public void generate() {
         return;
     }
 }

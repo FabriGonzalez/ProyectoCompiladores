@@ -10,4 +10,9 @@ public class VoidType extends Type{
     public boolean isCompatible(Type t){
         return t instanceof VoidType;
     }
+
+    @Override
+    public boolean isCompatibleForCompare(Type t) {
+        return t instanceof VoidType;
+    }
 }

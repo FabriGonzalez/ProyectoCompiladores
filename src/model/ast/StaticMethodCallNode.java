@@ -3,6 +3,7 @@ package model.ast;
 import Analyzers.SymbolTable;
 import exceptions.SemanticException;
 import model.*;
+import sourcemanager.OutputManager;
 
 import java.util.List;
 
@@ -10,6 +11,8 @@ public class StaticMethodCallNode extends PrimaryNode{
     Token classTk;
     Token methodTk;
     List<ExpressionNode> args;
+    Type returnType;
+
 
     public StaticMethodCallNode(Token c, Token m, List<ExpressionNode> l){
         classTk = c;
@@ -50,21 +53,42 @@ public class StaticMethodCallNode extends PrimaryNode{
         }
 
         for (int i = 0; i < args.size(); i++) {
-            Type actualType = args.get(i).check();
+            Type argType = args.get(i).check();
             Type expectedType = expectedParams.get(i).getType();
-            if (!actualType.isCompatible(expectedType)) {
+            if (!expectedType.isCompatible(argType)) {
                 throw new SemanticException(methodTk.getLineNumber(),
                         "Tipo incompatible en el argumento " + (i + 1) + " de '" + methodTk.getLexeme() + "'. Se esperaba " +
-                                expectedType + " y se recibió " + actualType,
+                                expectedType + " y se recibió " + argType,
                         methodTk.getLexeme());
             }
         }
 
-        Type returnType = methodCall.getEffectiveReturnType();
+        returnType = methodCall.getEffectiveReturnType();
         if (chain != null) {
             return chain.check(returnType);
         } else {
             return returnType;
         }
+    }
+
+    @Override
+    public void generate(boolean a) {
+        Classs associatedClass = SymbolTable.getInstance().getClass(classTk.getLexeme());
+        Method m = associatedClass.getMethodByName(methodTk.getLexeme());
+        if(!m.getReturnType().getName().equals("void")){
+            OutputManager.gen("RMEM 1 ; Lugar para el retorno");;
+        }
+        for(ExpressionNode p : args){
+            p.generate(false);
+        }
+        OutputManager.gen("PUSH lblMet" + methodTk.getLexeme() + "@" + classTk.getLexeme() +" ; apila el metodo");
+        OutputManager.gen("CALL ; Llama al metodo en el tope de la pila");
+        if(chain != null){
+            chain.generate(a);
+        }
+    }
+
+    public String getReturnType(){
+        return returnType.getName();
     }
 }

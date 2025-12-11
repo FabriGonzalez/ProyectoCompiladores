@@ -3,10 +3,11 @@ package model;
 import Analyzers.SymbolTable;
 import exceptions.SemanticException;
 
-public class Param {
+public class Param implements VarEntry{
     String name;
     Type type;
     int declaredLine;
+    int offset;
 
     public Param(Token tk){
         name = tk.getLexeme();
@@ -38,5 +39,15 @@ public class Param {
 
     public Type getType(){
         return type;
+    }
+
+    @Override
+    public int getOffset() {
+        return offset;
+    }
+
+    @Override
+    public void setOffset(int off) {
+        offset = off;
     }
 }

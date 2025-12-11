@@ -2,19 +2,28 @@ package model;
 
 import Analyzers.SymbolTable;
 import exceptions.SemanticException;
+import model.ast.BlockNode;
+import model.ast.StatementNode;
+import org.w3c.dom.Attr;
+import sourcemanager.OutputManager;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
 
 public class Classs {
     String name;
     String modifier;
-    HashMap<String, Attribute> attributes = new HashMap<>();
+    LinkedHashMap<String, Attribute> attributes = new LinkedHashMap<>();
+    LinkedHashMap<String, Method> methods = new LinkedHashMap<>();
     Constructor ctor;
-    HashMap<String, Method> methods = new HashMap<>();
     String parent;
     int declaredLine;
     SymbolTable ts;
     boolean consolidated;
+    int nextAttrOffset = 1;
+    int nextMetOffset = 0;
 
     public Classs(Token t, SymbolTable st) {
         name = t.lexeme;
@@ -26,6 +35,26 @@ public class Classs {
             parent = "Object";
             consolidated = false;
         }
+    }
+
+    public void setNextAttrOffset(int off){
+        nextAttrOffset = off;
+    }
+
+    public int getNextAttrOffset(){
+        return nextAttrOffset;
+    }
+
+    public int getAttributesSize(){
+        return attributes.size();
+    }
+
+    public void setNextMetOffset(int off){
+        nextMetOffset = off;
+    }
+
+    public int getNextMetOffset(){
+        return nextMetOffset;
     }
 
     public void setModifier(String modifier) {
@@ -57,6 +86,7 @@ public class Classs {
             throw new SemanticException(a.getDeclaredLine(), " Atributo duplicado " + a.getName() + " en la clase " + name, a.getName());
         }
         attributes.put(a.getName(), a);
+
     }
 
     public Constructor getCtor() {
@@ -99,6 +129,10 @@ public class Classs {
         } else {
             if (ctor == null) {
                 ctor = new Constructor(new Token("idClase", name, declaredLine), this);
+                BlockNode b = new BlockNode();
+                List<StatementNode> l = new LinkedList<>();
+                b.setSents(l);
+                ctor.setBlock(b);
             } else {
                 ctor.isCorrectDeclared(ts);
             }
@@ -128,7 +162,13 @@ public class Classs {
 
             for (Attribute a : parentClass.attributes.values()) {
                 if (this.attributes.containsKey(a.getName())) {
-                    throw new SemanticException(declaredLine, "atributo heredado redeclarado", name);
+                    if(a.getDeclaredLine() > declaredLine){
+                        throw new SemanticException(a.getDeclaredLine(), "atributo heredado redeclarado", a.getName());
+                    } else {
+                        Attribute attr = attributes.get(a.getName());
+                        throw new SemanticException(attr.getDeclaredLine(), "atributo heredado redeclarado", attr.getName());
+                    }
+
                 }
                 this.attributes.put(a.getName(), a);
             }
@@ -155,7 +195,7 @@ public class Classs {
                     }
 
                     if(redef.isStatic()){
-                        throw new SemanticException(redef.getDeclaredLine(), "Se redefine un metodo usando statico como modificador en la redefinicion", redef.getName());
+                        throw new SemanticException(redef.getDeclaredLine(), "Se redefine un metodo usando static como modificador en la redefinicion", redef.getName());
                     }
                 } else {
                     if(m.isAbstract() && !isAbstract()){
@@ -167,6 +207,8 @@ public class Classs {
         }
 
         consolidated = true;
+
+        assignOffsets();
     }
 
     boolean isFinal() {
@@ -223,5 +265,87 @@ public class Classs {
         for(Method m : methods.values()){
             m.check();
         }
+    }
+
+    public void generate() {
+        OutputManager.gen(".DATA");
+
+        if (hasDynamicMethods()) {
+
+            List<Method> dynMethods = new LinkedList<>();
+
+            for (Method m : methods.values()) {
+                if (!m.isStatic()) {
+                    dynMethods.add(m);
+                }
+            }
+            dynMethods.sort((m1, m2) -> Integer.compare(m1.getOffset(), m2.getOffset()));
+
+            boolean first = true;
+            for (Method m : dynMethods) {
+                String label =
+                        "lblMet" + m.getName() + "@" + m.getAssociatedClass().getName();
+
+                if (first) {
+                    OutputManager.gen("lblVT" + name + ": DW " + label);
+                    first = false;
+                } else {
+                    OutputManager.gen("DW " + label);
+                }
+            }
+
+        } else {
+            OutputManager.gen("lblVT" + name + ": NOP");
+        }
+        OutputManager.gen("");
+        OutputManager.gen(".CODE");
+        ctor.generate();
+        for (Method m : methods.values()) {
+            m.generate();
+        }
+    }
+
+
+    private boolean hasDynamicMethods(){
+        for(Method m : methods.values()){
+            if(!m.isStatic()){
+                return true;
+            }
+        }
+        return false;
+    }
+    private void assignOffsets(){
+        if(parent != null){
+            Classs parentClass = ts.getClass(parent);
+            nextAttrOffset = parentClass.getNextAttrOffset();
+            nextMetOffset = parentClass.getNextMetOffset();
+            for(Attribute a : attributes.values()){
+                if(parentClass.getAttributeByName(a.getName()) == null){
+                    a.setOffset(nextAttrOffset++);
+                }
+            }
+            for(Method m : methods.values()){
+                if(!m.isStatic()){
+                    Method parentMethod = getParentMethod(m.getName());
+                    if(parentMethod == null){
+                        m.setOffset(nextMetOffset++);
+                    }else {
+                        m.setOffset(parentMethod.getOffset());
+                    }
+                }
+            }
+        }
+    }
+
+    private Method getParentMethod(String name){
+        Classs current = getParentClass();
+        while(current != null){
+            Method m = current.getMethodByName(name);
+            if(m != null){
+                return m;
+            }
+            current = current.getParentClass();
+        }
+        return null;
     }
 }

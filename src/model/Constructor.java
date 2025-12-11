@@ -2,13 +2,12 @@ package model;
 
 import Analyzers.SymbolTable;
 import exceptions.SemanticException;
+import sourcemanager.OutputManager;
 
 public class Constructor extends GenericMethod{
-    Classs associatedClass;
 
     public Constructor(Token tk, Classs aC){
-        super(tk.getLexeme(), tk.getLineNumber());
-        associatedClass = aC;
+        super(tk.getLexeme(), tk.getLineNumber(), aC);
         hasBlock = false;
     }
 
@@ -23,6 +22,18 @@ public class Constructor extends GenericMethod{
 
     public boolean isConstructor() {
         return true;
+    }
+
+    public void generate(){
+        OutputManager.gen("lblConstructor@" + associatedClass.getName()+": LOADFP; Apila el valor del registro fp");
+        OutputManager.gen("LOADSP; Apila el valor del registro sp");
+        OutputManager.gen("STOREFP; Almacena el tope de la pila en el registro fp");
+        if(block != null){
+            block.generate();
+        }
+        OutputManager.gen("STOREFP; Almacena el tope de la pila en el registro fp");
+        int ret = params.size() + 1;
+        OutputManager.gen("RET " + ret);
     }
 
 }

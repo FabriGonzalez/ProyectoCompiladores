@@ -3,6 +3,7 @@ package model.ast;
 import Analyzers.SymbolTable;
 import exceptions.SemanticException;
 import model.*;
+import sourcemanager.OutputManager;
 
 import java.util.List;
 
@@ -53,6 +54,30 @@ public class ConstructorCallNode extends PrimaryNode{
             return chain.check(refType);
         } else{
             return refType;
+        }
+    }
+
+    @Override
+    public void generate(boolean a) {
+        SymbolTable ts = SymbolTable.getInstance();
+        Classs associatedClass = ts.getClass(ctorTk.getLexeme());
+        OutputManager.gen("RMEM 1 ; Reservamos memoria para el resultado del malloc (la referencia al nuevo CIR de " + associatedClass.getName() + ")");
+        int vtAndVars = associatedClass.getAttributesSize() + 1;
+        OutputManager.gen("PUSH " + vtAndVars + " ; Apilo la cantidad de var de instancia del CIR de "+ associatedClass.getName() + " +1 por VT");
+        OutputManager.gen("PUSH simple_malloc ; La direccion de la rutina para alojar memoria en el heap");
+        OutputManager.gen("CALL ; Llamo a malloc");
+        OutputManager.gen("DUP ; Para no perder la referencia al nuevo CIR");
+        OutputManager.gen("PUSH lblVT" + associatedClass.getName() + " ; Apilo la direccion del cominezo de la VT de la clase " + associatedClass.getName());
+        OutputManager.gen("STOREREF 0 ; Guardamos la Referencia a la VT en el CIR que creamos");
+        OutputManager.gen("DUP");
+        for(ExpressionNode p : params){
+            p.generate(false);
+            OutputManager.gen("SWAP");
+        }
+        OutputManager.gen("PUSH lblConstructor@" + associatedClass.getName());
+        OutputManager.gen("CALL ; Llamo al constructor de " + associatedClass.getName());
+        if (chain != null){
+            chain.generate(a);
         }
     }
 

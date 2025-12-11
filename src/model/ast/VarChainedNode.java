@@ -3,9 +3,11 @@ package model.ast;
 import Analyzers.SymbolTable;
 import exceptions.SemanticException;
 import model.*;
+import sourcemanager.OutputManager;
 
 public class VarChainedNode extends ChainedNode{
     Token varTk;
+    VarEntry eVar;
 
     public VarChainedNode(Token tk){
         varTk = tk;
@@ -13,10 +15,6 @@ public class VarChainedNode extends ChainedNode{
 
     @Override
     public Type check(Type baseType) {
-        /*Aca habria que ver si a la variable que se esta intentando acceder existe.
-        Y tambien faltaria algun chequeo de si la clase a la que esta variable esta encadenada
-        tiene esta misma variable.
-         */
         if(!(baseType instanceof ReferenceType)){
             throw new SemanticException(varTk.getLineNumber(),
                     "No se puede invocar un método sobre un tipo no referencial: " + baseType,
@@ -33,6 +31,7 @@ public class VarChainedNode extends ChainedNode{
         }
 
         Attribute baseAttribute = baseClass.getAttributeByName(varTk.getLexeme());
+        eVar = baseAttribute;
         if(baseAttribute != null){
             Type attrType = baseAttribute.getType();
             if(chain != null){
@@ -46,5 +45,22 @@ public class VarChainedNode extends ChainedNode{
                 "La clase " + baseClass.getName() + " no tiene un atributo llamado '" + varTk.getLexeme() + "'.",
                 varTk.getLexeme());
 
+    }
+
+    @Override
+    public void generate(boolean isLeftAssignment) {
+        if(!isLeftAssignment || chain != null){
+            OutputManager.gen("LOADREF " + eVar.getOffset());
+        } else{
+            OutputManager.gen("SWAP");
+            OutputManager.gen("STOREREF " + eVar.getOffset());
+        }
+        if(chain != null){
+            chain.generate(isLeftAssignment);
+        }
+    }
+
+    public int getOffset(){
+        return eVar.getOffset();
     }
 }

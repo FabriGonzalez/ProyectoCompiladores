@@ -19,4 +19,6 @@ abstract public class Type {
 
     public abstract boolean isCompatible(Type t);
 
+    public abstract boolean isCompatibleForCompare(Type t);
+
 }

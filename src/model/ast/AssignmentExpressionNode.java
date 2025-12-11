@@ -1,18 +1,22 @@
 package model.ast;
 
 import exceptions.SemanticException;
+import model.NullType;
 import model.Token;
 import model.Type;
+import sourcemanager.OutputManager;
 
 public class AssignmentExpressionNode extends ExpressionNode{
     CompoundExpressionNode leftNode;
     CompoundExpressionNode rightNode;
     Token operator;
+    boolean isRigthNode;
 
     public AssignmentExpressionNode(CompoundExpressionNode l, CompoundExpressionNode r, Token o){
         leftNode = l;
         rightNode = r;
         operator = o;
+        isRigthNode = false;
     }
 
     @Override
@@ -24,11 +28,23 @@ public class AssignmentExpressionNode extends ExpressionNode{
         Type leftType = leftNode.check();
         Type rightType = rightNode.check();
 
-        if(leftNode instanceof PrimaryNode primaryRightNode){
-            ChainedNode chain = primaryRightNode.getChain();
+        if(leftNode instanceof PrimaryNode primaryLeftNode){
+            ChainedNode chain = primaryLeftNode.getChain();
 
             if(chain == null){
-                if(!(primaryRightNode instanceof VarAccessNode)){
+                boolean isVarAccesNode = primaryLeftNode instanceof VarAccessNode;
+                boolean isParenthezideExp = primaryLeftNode instanceof ParenthesizedExpressionNode;
+                if(isParenthezideExp){
+                    ParenthesizedExpressionNode p = (ParenthesizedExpressionNode) primaryLeftNode;
+                    ExpressionNode parExp = p.getAssociatedExp();
+                    boolean isAssigNode = parExp instanceof AssignmentExpressionNode;
+                    isVarAccesNode = parExp instanceof VarAccessNode;
+                    if(!(isAssigNode || isVarAccesNode)){
+                        throw new SemanticException(operator.getLineNumber(),
+                                "El lado izquierdo de la asignación debe ser una variable", operator.getLexeme());
+                    }
+                }
+                if(!(isParenthezideExp || isVarAccesNode)){
                     throw new SemanticException(operator.getLineNumber(),
                             "El lado izquierdo de la asignación debe ser una variable", operator.getLexeme());
                 }
@@ -50,5 +66,21 @@ public class AssignmentExpressionNode extends ExpressionNode{
         }
 
         return leftType;
+    }
+
+    public void setIsRightNode(){
+        isRigthNode = true;
+    }
+
+    @Override
+    public void generate(boolean isLeftAssignment) {
+        if(rightNode instanceof ParenthesizedExpressionNode p){
+           p.setIsRightNode();
+        }
+        rightNode.generate(false);
+        if(isRigthNode){
+            OutputManager.gen("DUP");
+        }
+        leftNode.generate(true);
     }
 }

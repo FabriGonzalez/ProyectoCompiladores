@@ -9,4 +9,9 @@ public class IntType extends PrimType {
     public boolean isCompatible(Type t){
         return t instanceof IntType;
     }
+
+    @Override
+    public boolean isCompatibleForCompare(Type t) {
+        return t instanceof IntType;
+    }
 }

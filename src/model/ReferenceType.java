@@ -13,7 +13,7 @@ public class ReferenceType extends Type {
             return false;
         }
 
-        if(this instanceof NullType){
+        if(t instanceof NullType){
             return true;
         }
 
@@ -29,6 +29,11 @@ public class ReferenceType extends Type {
 
         return false;
 
+    }
+
+    @Override
+    public boolean isCompatibleForCompare(Type t) {
+        return t instanceof ReferenceType;
     }
 
     public void setAssociatedClass(Classs c){

@@ -134,7 +134,7 @@ public class SyntacticAnalyzer {
         Type type = ts.resolveType(typeTk);
         Token name = currentToken;
         match("idMetVar");
-        Method newMethod = new Method(name, type, modifier);
+        Method newMethod = new Method(name, type, modifier, ts.getCurrentClass());
         ts.setCurrentMethod(newMethod);
 
         ts.getCurrentClass().addMethod(newMethod);
@@ -165,7 +165,7 @@ public class SyntacticAnalyzer {
 
             match("idMetVar");
 
-            Method newMethod = new Method(currentTk, type);
+            Method newMethod = new Method(currentTk, type, ts.getCurrentClass());
             ts.setCurrentMethod(newMethod);
             ts.getCurrentClass().addMethod(newMethod);
 
@@ -178,7 +178,7 @@ public class SyntacticAnalyzer {
     void r_metodoOAtributo(Token currentTk, Type type) throws LexicalException, SyntacticException, IOException {
         if(pRMetodo.contains(currentToken.getId())){
 
-            Method newMethod = new Method(currentTk, type);
+            Method newMethod = new Method(currentTk, type, ts.getCurrentClass());
             ts.setCurrentMethod(newMethod);
             ts.getCurrentClass().addMethod(newMethod);
 
@@ -493,6 +493,7 @@ public class SyntacticAnalyzer {
             case "+" -> match("+");
             case "-" -> match("-");
             case "++" -> match("++");
+            case "--" -> match("--");
             case "!" -> match("!");
             default -> throw new SyntacticException(currentToken, "operador unario");
         }
@@ -600,7 +601,7 @@ public class SyntacticAnalyzer {
     PrimaryNode r_accesoVarOLlamadaAMetodo(Token tk) throws LexicalException, SyntacticException, IOException {
         if(pArgsActuales.contains(currentToken.getId())){
             List<ExpressionNode> params = argsActuales();
-            return new MethodCallNode(tk, params, ts.getCurrentClass());
+            return new MethodCallNode(tk, params, ts.getCurrentClass(), ts.getCurrentMethod());
         } else {
             return new VarAccessNode(tk, ts.getCurrentClass(), ts.getCurrentMethod(), ts.getCurrentBlock());
         }

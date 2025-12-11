@@ -23,4 +23,6 @@ public abstract class ChainedNode {
         return current;
     }
 
+    public abstract void generate(boolean a);
+
 }

@@ -1,5 +1,7 @@
 package model.ast;
 
+import sourcemanager.OutputManager;
+
 import java.util.LinkedList;
 import java.util.List;
 
@@ -7,9 +9,11 @@ public class BlockNode extends StatementNode{
     List<StatementNode> sents;
     BlockNode parent;
     List<LocalVarNode> localVars;
+    int currentOffset;
 
     public BlockNode(){
         localVars = new LinkedList<>();
+        currentOffset = 0;
     }
 
     public void setSents(List<StatementNode> l){
@@ -22,6 +26,18 @@ public class BlockNode extends StatementNode{
         }
     }
 
+    @Override
+    public void generate() {
+        for(StatementNode s : sents){
+            if(s instanceof ReturnNode){
+                OutputManager.gen("FMEM " + localVars.size());
+            }
+            s.generate();
+
+        }
+        OutputManager.gen("FMEM " + localVars.size());
+    }
+
     public void setParentBlock(BlockNode b){
         parent = b;
     }
@@ -32,6 +48,14 @@ public class BlockNode extends StatementNode{
 
     public void setLocalVar(LocalVarNode l){
         localVars.add(l);
+        if(parent != null){
+            currentOffset = parent.getCurrentOffset();
+        }
+        l.setOffset(currentOffset--);
+    }
+
+    public int getCurrentOffset(){
+        return currentOffset;
     }
 
     public boolean hasLocalVar(String name){
